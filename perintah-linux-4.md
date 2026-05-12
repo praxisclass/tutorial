@@ -1114,8 +1114,3 @@ chrt          → Set real-time scheduling
 ## ✅ Bagian 4 Selesai!
 
 **Lanjut ke Bagian 5: Perintah Manajemen Paket?**
-
-Ketik:
-- ✅ **"Lanjut"** → Ke Bagian 5
-- 🔄 **"Ulangi"** → Ulangi Bagian 4
-- 🎯 **"Langsung ke Bagian X"** → Lompat ke bagian tertentu
