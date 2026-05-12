@@ -31,6 +31,7 @@ cd <direktori>
 > Berpindah ke direktori yang ditentukan
 
 **Contoh Penggunaan:**
+
 | Perintah | Penjelasan |
 |---|---|
 | `cd /home/user` | Pindah ke direktori absolut |
@@ -51,6 +52,7 @@ ls [opsi] [direktori]
 > Menampilkan isi direktori
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `ls -l` | Tampilan detail (long format) |
@@ -93,6 +95,7 @@ mkdir [opsi] <nama_direktori>
 > Membuat direktori baru
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `mkdir folder1` | Membuat satu direktori |
@@ -125,6 +128,7 @@ touch [opsi] <nama_file>
 > Membuat file kosong baru atau memperbarui timestamp file yang sudah ada
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `touch file.txt` | Membuat file kosong baru |
@@ -146,6 +150,7 @@ cp [opsi] <sumber> <tujuan>
 > Menyalin file atau direktori
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `cp file.txt /tujuan/` | Salin file ke direktori lain |
@@ -172,6 +177,7 @@ mv [opsi] <sumber> <tujuan>
 > Memindahkan atau mengganti nama file/direktori
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `mv file.txt /tujuan/` | Pindahkan file ke direktori lain |
@@ -195,6 +201,7 @@ rm [opsi] <file/direktori>
 > ⚠️ **PERINGATAN:** Perintah `rm` bersifat permanen! Tidak ada Recycle Bin di Linux.
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `rm file.txt` | Hapus file |
@@ -218,6 +225,7 @@ rmdir [opsi] <direktori>
 > Menghapus direktori yang kosong
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `rmdir folder/` | Hapus direktori kosong |
@@ -236,6 +244,7 @@ ln [opsi] <target> <nama_link>
 > Membuat link (hard link atau symbolic link)
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `ln file.txt hardlink.txt` | Membuat hard link |
@@ -269,6 +278,7 @@ tree [opsi] [direktori]
 > 📦 Perlu instalasi: `sudo apt install tree`
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `tree` | Tampilkan pohon direktori dari lokasi saat ini |
@@ -314,6 +324,7 @@ file [opsi] <nama_file>
 > Menentukan tipe/jenis file
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `file file.txt` | Tampilkan tipe file |
@@ -344,6 +355,7 @@ stat [opsi] <file>
 > Menampilkan informasi lengkap tentang file (ukuran, permission, timestamp, inode, dll.)
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `stat file.txt` | Tampilkan semua informasi file |
@@ -374,6 +386,7 @@ du [opsi] [file/direktori]
 > Menampilkan penggunaan ruang disk oleh file atau direktori
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `du` | Tampilkan ukuran semua direktori secara rekursif |
@@ -400,6 +413,7 @@ wc [opsi] <file>
 > Menghitung baris, kata, dan karakter dalam file
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `wc file.txt` | Tampilkan jumlah baris, kata, dan byte |
@@ -424,6 +438,7 @@ find [path] [ekspresi]
 > Mencari file dan direktori berdasarkan berbagai kriteria
 
 **Berdasarkan Nama:**
+
 | Perintah | Penjelasan |
 |---|---|
 | `find . -name "file.txt"` | Cari file bernama "file.txt" |
@@ -432,6 +447,7 @@ find [path] [ekspresi]
 | `find /home -name "*.conf"` | Cari di direktori tertentu |
 
 **Berdasarkan Tipe:**
+
 | Perintah | Penjelasan |
 |---|---|
 | `find . -type f` | Cari hanya file biasa |
@@ -441,6 +457,7 @@ find [path] [ekspresi]
 | `find . -type c` | Cari character device |
 
 **Berdasarkan Ukuran:**
+
 | Perintah | Penjelasan |
 |---|---|
 | `find . -size 100k` | File berukuran tepat 100KB |
@@ -450,6 +467,7 @@ find [path] [ekspresi]
 | `find . -empty` | Cari file/direktori kosong |
 
 **Berdasarkan Waktu:**
+
 | Perintah | Penjelasan |
 |---|---|
 | `find . -mtime -7` | Dimodifikasi dalam 7 hari terakhir |
@@ -460,6 +478,7 @@ find [path] [ekspresi]
 | `find . -mmin -60` | Dimodifikasi dalam 60 menit terakhir |
 
 **Berdasarkan Permission & Kepemilikan:**
+
 | Perintah | Penjelasan |
 |---|---|
 | `find . -perm 755` | File dengan permission 755 |
@@ -469,6 +488,7 @@ find [path] [ekspresi]
 | `find . -perm /u+x` | File yang executable oleh pemilik |
 
 **Dengan Aksi:**
+
 | Perintah | Penjelasan |
 |---|---|
 | `find . -name "*.txt" -delete` | Cari dan hapus file .txt |
@@ -480,6 +500,7 @@ find [path] [ekspresi]
 | `find . -type f \| xargs grep "kata"` | Cari kata dalam file hasil find |
 
 **Kombinasi Logika:**
+
 | Perintah | Penjelasan |
 |---|---|
 | `find . -name "*.txt" -o -name "*.pdf"` | OR: cari .txt atau .pdf |
@@ -499,6 +520,7 @@ locate [opsi] <pola>
 > 📦 Perlu instalasi: `sudo apt install mlocate`
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `locate file.txt` | Cari file bernama file.txt |
@@ -540,6 +562,7 @@ whereis [opsi] <perintah>
 > Menemukan lokasi binary, source code, dan manual page
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `whereis ls` | Tampilkan semua lokasi (binary, source, manual) |
