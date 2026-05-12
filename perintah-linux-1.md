@@ -16,6 +16,7 @@ pwd
 ```
 
 **Opsi:**
+
 | Opsi | Penjelasan |
 |---|---|
 | `pwd -L` | Menampilkan path logis (mengikuti symlink) |
