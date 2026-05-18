@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PakBe Project - Document Converter</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Libraries for Conversion -->
+    <!-- Marked (MD to HTML) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Turndown (HTML to MD) -->
+    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+    <!-- html2pdf (HTML to PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Mammoth (DOCX to HTML/Text) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <!-- PDF.js (PDF to Text) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+        }
+        .drag-active {
+            border-color: #3b82f6 !important; /* Blue 500 */
+            background-color: #eff6ff !important; /* Blue 50 */
+        }
+        /* Markdown Editor Styles */
+        #editor {
+            font-family: monospace;
+            resize: vertical;
+        }
+        /* Loader Animation */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Hide element utility */
+        .hidden { display: none !important; }
+    </style>
+    <script>
+        // Configure PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo Area -->
+                <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">
+                        PB
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-slate-900">PakBe Project</span>
+                </div>
+                <div>
+                    <span class="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                        Converter Suite
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+                Alat Konversi Dokumen Cepat
+            </h1>
+            <p class="mt-3 max-w-2xl mx-auto text-lg text-slate-500">
+                Konversi format MD, DOCX, dan PDF secara instan langsung di browser Anda. Aman dan tanpa perlu unggah ke server.
+            </p>
+        </div>
+
+        <!-- App Container -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+            
+            <!-- Tools Selection Tabs -->
+            <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto" id="tool-tabs">
+                <button class="tab-btn active px-6 py-4 text-sm font-medium text-blue-600 border-b-2 border-blue-600 whitespace-nowrap focus:outline-none flex items-center gap-2 transition-colors" data-tool="md-to-doc">
+                    <i class="fa-solid fa-file-word"></i> MD to DOC
+                </button>
+                <button class="tab-btn px-6 py-4 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 whitespace-nowrap focus:outline-none flex items-center gap-2 transition-colors" data-tool="doc-to-md">
+                    <i class="fa-brands fa-markdown"></i> DOC to MD
+                </button>
+                <button class="tab-btn px-6 py-4 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 whitespace-nowrap focus:outline-none flex items-center gap-2 transition-colors" data-tool="md-to-pdf">
+                    <i class="fa-solid fa-file-pdf"></i> MD to PDF
+                </button>
+                <button class="tab-btn px-6 py-4 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 whitespace-nowrap focus:outline-none flex items-center gap-2 transition-colors" data-tool="pdf-to-md">
+                    <i class="fa-solid fa-file-arrow-down"></i> PDF to MD
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8">
+                
+                <!-- Common State: File Upload Area (Used by DOC->MD and PDF->MD) -->
+                <div id="upload-area" class="hidden mb-6">
+                    <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-10 text-center transition-all duration-200 hover:bg-slate-50 cursor-pointer">
+                        <i class="fa-solid fa-cloud-arrow-up text-4xl text-blue-500 mb-4"></i>
+                        <p class="text-lg font-medium text-slate-700 mb-1">Pilih atau letakkan file di sini</p>
+                        <p class="text-sm text-slate-500 mb-4" id="upload-hint">Mendukung file .docx</p>
+                        <input type="file" id="file-input" class="hidden" accept=".docx" />
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors" onclick="document.getElementById('file-input').click()">
+                            Pilih File
+                        </button>
+                        
+                        <div id="file-info" class="hidden mt-4 pt-4 border-t border-slate-200">
+                            <p class="text-sm font-medium text-slate-700">File terpilih: <span id="file-name" class="text-blue-600 font-semibold"></span></p>
+                            <button id="process-file-btn" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 mx-auto">
+                                <i class="fa-solid fa-gear"></i> Proses File <span id="process-loader" class="loader hidden"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area: Markdown Editor (Used by MD->DOC and MD->PDF) -->
+                <div id="editor-area" class="mb-6 flex flex-col h-[400px]">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-slate-700">Input Markdown</label>
+                        <button id="load-sample-btn" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Load Sample</button>
+                    </div>
+                    <textarea id="markdown-input" class="w-full flex-grow p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50 transition-shadow outline-none" placeholder="# Ketik atau paste Markdown di sini..."></textarea>
+                </div>
+
+                <!-- Output Area -->
+                <div id="output-area" class="border-t border-slate-200 pt-6 mt-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                        <h3 class="text-lg font-medium text-slate-800" id="output-title">Preview / Hasil</h3>
+                        <div class="flex gap-2">
+                            <button id="copy-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm flex items-center gap-2 border border-slate-300">
+                                <i class="fa-regular fa-copy"></i> Copy Text
+                            </button>
+                            <button id="download-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg transition-colors text-sm flex items-center gap-2 shadow-sm">
+                                <i class="fa-solid fa-download"></i> <span id="download-text">Download DOC</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Markdown/Text Output View -->
+                    <textarea id="output-text" class="hidden w-full h-[300px] p-4 border border-slate-300 rounded-lg bg-slate-50 outline-none" readonly></textarea>
+                    
+                    <!-- HTML Preview View (For MD to PDF/DOC visually) -->
+                    <div id="output-preview" class="w-full h-[300px] p-6 border border-slate-300 rounded-lg bg-white overflow-y-auto prose max-w-none shadow-inner">
+                        <div class="text-slate-400 italic text-center mt-20">Hasil render akan muncul di sini...</div>
+                    </div>
+
+                    <!-- Hidden div for generating PDF/DOC -->
+                    <div id="hidden-render" class="hidden"></div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex justify-center items-center gap-2 text-slate-500">
+                <div class="w-6 h-6 bg-slate-200 rounded flex items-center justify-center text-slate-600 text-xs font-bold">PB</div>
+                <p>&copy; 2026 PakBe Project. All rights reserved.</p>
+            </div>
+            <p class="text-sm text-slate-400 mt-2">Dibuat dengan ❤️ oleh CodeMasterDev</p>
+        </div>
+    </footer>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <i id="toast-icon" class="fa-solid fa-check-circle text-emerald-400"></i>
+            <span id="toast-message">Notifikasi</span>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let currentTool = 'md-to-doc';
+        let currentFile = null;
+        let generatedContent = ''; // Raw generated text/html
+
+        // DOM Elements
+        const tabs = document.querySelectorAll('.tab-btn');
+        const editorArea = document.getElementById('editor-area');
+        const uploadArea = document.getElementById('upload-area');
+        const markdownInput = document.getElementById('markdown-input');
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInfo = document.getElementById('file-info');
+        const fileNameDisplay = document.getElementById('file-name');
+        const uploadHint = document.getElementById('upload-hint');
+        const processFileBtn = document.getElementById('process-file-btn');
+        const processLoader = document.getElementById('process-loader');
+        
+        const outputArea = document.getElementById('output-area');
+        const outputText = document.getElementById('output-text');
+        const outputPreview = document.getElementById('output-preview');
+        const hiddenRender = document.getElementById('hidden-render');
+        
+        const downloadBtn = document.getElementById('download-btn');
+        const downloadText = document.getElementById('download-text');
+        const copyBtn = document.getElementById('copy-btn');
+        const loadSampleBtn = document.getElementById('load-sample-btn');
+
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // Setup Turndown (HTML to MD)
+        const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
+
+        // Tab Switching Logic
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active tab style
+                tabs.forEach(t => {
+                    t.classList.remove('active', 'text-blue-600', 'border-blue-600');
+                    t.classList.add('text-slate-500', 'border-transparent');
+                });
+                tab.classList.remove('text-slate-500', 'border-transparent');
+                tab.classList.add('active', 'text-blue-600', 'border-blue-600');
+
+                currentTool = tab.getAttribute('data-tool');
+                updateUIForTool();
+            });
+        });
+
+        function updateUIForTool() {
+            // Reset states
+            resetWorkspace();
+
+            if (currentTool === 'md-to-doc' || currentTool === 'md-to-pdf') {
+                editorArea.classList.remove('hidden');
+                uploadArea.classList.add('hidden');
+                outputPreview.classList.remove('hidden');
+                outputText.classList.add('hidden');
+                copyBtn.classList.add('hidden');
+                
+                downloadText.textContent = currentTool === 'md-to-doc' ? 'Download DOC' : 'Download PDF';
+                downloadBtn.innerHTML = `<i class="fa-solid fa-download"></i> <span id="download-text">${downloadText.textContent}</span>`;
+                
+                // Trigger render if input not empty
+                if (markdownInput.value.trim() !== '') {
+                    handleMarkdownInput();
+                }
+
+            } else if (currentTool === 'doc-to-md' || currentTool === 'pdf-to-md') {
+                editorArea.classList.add('hidden');
+                uploadArea.classList.remove('hidden');
+                outputPreview.classList.add('hidden');
+                outputText.classList.remove('hidden');
+                copyBtn.classList.remove('hidden');
+                
+                downloadText.textContent = 'Download MD';
+                downloadBtn.innerHTML = `<i class="fa-solid fa-download"></i> <span id="download-text">Download MD</span>`;
+                
+                if (currentTool === 'doc-to-md') {
+                    fileInput.accept = ".docx";
+                    uploadHint.textContent = "Mendukung file .docx (Word)";
+                } else {
+                    fileInput.accept = ".pdf";
+                    uploadHint.textContent = "Mendukung file .pdf";
+                }
+            }
+        }
+
+        function resetWorkspace() {
+            currentFile = null;
+            generatedContent = '';
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+            outputText.value = '';
+            outputPreview.innerHTML = '<div class="text-slate-400 italic text-center mt-20">Hasil render akan muncul di sini...</div>';
+            hiddenRender.innerHTML = '';
+        }
+
+        // Markdown Input Handling
+        let debounceTimer;
+        markdownInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleMarkdownInput, 500);
+        });
+
+        function handleMarkdownInput() {
+            const mdText = markdownInput.value;
+            if (!mdText.trim()) {
+                outputPreview.innerHTML = '<div class="text-slate-400 italic text-center mt-20">Hasil render akan muncul di sini...</div>';
+                return;
+            }
+            // Convert MD to HTML using marked
+            const htmlContent = marked.parse(mdText);
+            outputPreview.innerHTML = htmlContent;
+            hiddenRender.innerHTML = htmlContent;
+            generatedContent = mdText; // For saving later
+        }
+
+        // File Drag & Drop Handling
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-active'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-active'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                const validDoc = currentTool === 'doc-to-md' && file.name.endsWith('.docx');
+                const validPdf = currentTool === 'pdf-to-md' && file.name.endsWith('.pdf');
+
+                if (validDoc || validPdf) {
+                    currentFile = file;
+                    fileNameDisplay.textContent = file.name;
+                    fileInfo.classList.remove('hidden');
+                } else {
+                    showToast('Format file tidak didukung untuk alat ini.', 'error');
+                }
+            }
+        }
+
+        // Process File Button
+        processFileBtn.addEventListener('click', async () => {
+            if (!currentFile) return;
+
+            processFileBtn.disabled = true;
+            processLoader.classList.remove('hidden');
+
+            try {
+                if (currentTool === 'doc-to-md') {
+                    await processDocxToMd(currentFile);
+                } else if (currentTool === 'pdf-to-md') {
+                    await processPdfToMd(currentFile);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Terjadi kesalahan saat memproses file.', 'error');
+            } finally {
+                processFileBtn.disabled = false;
+                processLoader.classList.add('hidden');
+            }
+        });
+
+        async function processDocxToMd(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            // Using mammoth to extract raw HTML
+            const result = await mammoth.convertToHtml({arrayBuffer: arrayBuffer});
+            const html = result.value; 
+            
+            // Convert HTML to MD using Turndown
+            const markdown = turndownService.turndown(html);
+            
+            generatedContent = markdown;
+            outputText.value = markdown;
+            showToast('DOCX berhasil dikonversi ke Markdown!', 'success');
+        }
+
+        async function processPdfToMd(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+            
+            let fullText = '';
+            // Loop through each page
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n\n';
+            }
+            
+            // Simple heuristic to make it look a bit like Markdown
+            // (Client-side PDF parsing to perfect MD is very hard, this is a basic extraction)
+            let markdown = fullText.replace(/\n{3,}/g, '\n\n'); 
+            
+            generatedContent = markdown;
+            outputText.value = markdown;
+            showToast('Teks PDF berhasil diekstrak!', 'success');
+        }
+
+        // Download Logic
+        downloadBtn.addEventListener('click', () => {
+            if (currentTool === 'md-to-doc') {
+                downloadHtmlAsDoc();
+            } else if (currentTool === 'md-to-pdf') {
+                downloadHtmlAsPdf();
+            } else if (currentTool === 'doc-to-md' || currentTool === 'pdf-to-md') {
+                downloadTextAsFile(generatedContent, 'converted.md', 'text/markdown');
+            }
+        });
+
+        function downloadHtmlAsDoc() {
+            if (!hiddenRender.innerHTML) {
+                showToast('Tidak ada konten untuk diunduh.', 'error');
+                return;
+            }
+            // Wrap HTML in Word-compatible structure
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML To Doc</title></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + hiddenRender.innerHTML + footer;
+            
+            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            const fileDownload = document.createElement("a");
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'document.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
+            showToast('File DOC berhasil diunduh!', 'success');
+        }
+
+        function downloadHtmlAsPdf() {
+            if (!hiddenRender.innerHTML) {
+                showToast('Tidak ada konten untuk diunduh.', 'error');
+                return;
+            }
+            
+            // Style specifically for PDF output
+            const pdfContainer = document.createElement('div');
+            pdfContainer.innerHTML = hiddenRender.innerHTML;
+            // Basic styles for PDF render
+            pdfContainer.style.padding = '20px';
+            pdfContainer.style.fontFamily = 'Helvetica, Arial, sans-serif';
+            pdfContainer.style.color = '#000';
+            
+            const opt = {
+                margin:       1,
+                filename:     'document.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Using html2pdf.js
+            html2pdf().set(opt).from(pdfContainer).save().then(() => {
+                showToast('File PDF berhasil diunduh!', 'success');
+            });
+        }
+
+        function downloadTextAsFile(text, filename, type) {
+            if (!text) {
+                showToast('Tidak ada konten untuk diunduh.', 'error');
+                return;
+            }
+            const blob = new Blob([text], { type: type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('File berhasil diunduh!', 'success');
+        }
+
+        // Copy Button Logic
+        copyBtn.addEventListener('click', () => {
+            if (!outputText.value) return;
+            
+            outputText.select();
+            document.execCommand('copy');
+            
+            // Fallback for modern browsers
+            navigator.clipboard.writeText(outputText.value).then(() => {
+                showToast('Teks disalin ke clipboard!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+
+        // Load Sample Logic
+        loadSampleBtn.addEventListener('click', () => {
+            const sampleMD = `# Panduan PakBe Project
+
+Ini adalah contoh dokumen **Markdown**.
+
+## Fitur Utama
+1. Konversi Cepat
+2. Berjalan di Browser
+3. Aman
+
+### Contoh Tabel
+| Alat | Input | Output |
+| :--- | :--- | :--- |
+| MD2DOC | Markdown | .doc |
+| MD2PDF | Markdown | .pdf |
+
+> "Coding is like writing poetry, but computers understand it."
+
+Silakan edit teks ini untuk melihat perubahannya!`;
+            markdownInput.value = sampleMD;
+            handleMarkdownInput();
+        });
+
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            toastMessage.textContent = message;
+            const icon = document.getElementById('toast-icon');
+            
+            if (type === 'success') {
+                icon.className = 'fa-solid fa-check-circle text-emerald-400';
+            } else {
+                icon.className = 'fa-solid fa-circle-exclamation text-red-400';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Initialize App
+        updateUIForTool();
+
+    </script>
+</body>
+</html>
